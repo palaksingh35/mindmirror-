@@ -1,0 +1,426 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<title>MindMirror Personality Quiz</title>
+
+<!-- Created by Palak Singh -->
+
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+
+<style>
+
+body{
+margin:0;
+font-family:'Inter',sans-serif;
+background:linear-gradient(135deg,#1e293b,#020617);
+color:white;
+display:flex;
+justify-content:center;
+align-items:center;
+min-height:100vh;
+}
+
+.container{
+width:95%;
+max-width:720px;
+background:#0f172a;
+padding:35px;
+border-radius:20px;
+box-shadow:0 25px 60px rgba(0,0,0,0.6);
+}
+
+h1{text-align:center;}
+
+button{
+width:100%;
+padding:14px;
+margin:10px 0;
+border:none;
+border-radius:12px;
+background:#6366f1;
+color:white;
+font-size:15px;
+cursor:pointer;
+transition:0.2s;
+}
+
+button:hover{
+background:#4f46e5;
+}
+
+input{
+width:100%;
+padding:12px;
+margin:12px 0;
+border-radius:10px;
+border:none;
+}
+
+.progress-bar{
+height:6px;
+background:#334155;
+border-radius:5px;
+margin-bottom:10px;
+}
+
+.progress{
+height:100%;
+width:0%;
+background:#6366f1;
+border-radius:5px;
+}
+
+.progress-text{
+text-align:right;
+font-size:12px;
+color:#94a3b8;
+}
+
+.result-card{
+background:#1e293b;
+padding:25px;
+border-radius:15px;
+text-align:center;
+margin-top:10px;
+}
+
+.result-title{
+font-size:28px;
+font-weight:700;
+color:#a5b4fc;
+}
+
+.result-image{
+background:linear-gradient(135deg,#6366f1,#a78bfa);
+padding:25px;
+border-radius:15px;
+margin:20px 0;
+font-size:22px;
+font-weight:700;
+}
+
+.creator{
+text-align:center;
+margin-top:20px;
+font-size:13px;
+color:#94a3b8;
+}
+
+</style>
+</head>
+
+<body>
+
+<div class="container">
+
+<h1>MindMirror</h1>
+
+<p style="text-align:center;color:#94a3b8">
+Discover your personality through fun scenarios.
+</p>
+
+<div class="progress-bar">
+<div class="progress" id="progress"></div>
+</div>
+
+<div class="progress-text" id="progressText"></div>
+
+<div id="app"></div>
+
+<div class="creator">
+Built by <b>Palak Singh</b> • 2026
+</div>
+
+</div>
+
+<script>
+
+const clickSound=new Audio("https://assets.mixkit.co/active_storage/sfx/2568/2568-preview.mp3");
+const finishSound=new Audio("https://assets.mixkit.co/active_storage/sfx/1435/1435-preview.mp3");
+
+const songs={
+Strategist:"https://cdn.pixabay.com/download/audio/2022/03/15/audio_c8e6c9c1d5.mp3",
+Commander:"https://cdn.pixabay.com/download/audio/2022/03/24/audio_8c65c3c7c3.mp3",
+Builder:"https://cdn.pixabay.com/download/audio/2022/03/10/audio_6c6cb6fbd3.mp3",
+Creator:"https://cdn.pixabay.com/download/audio/2022/03/02/audio_6c4e8a5a8c.mp3"
+};
+
+function playSong(type){
+new Audio(songs[type]).play();
+}
+
+const questions=[
+
+{q:"If you could gain ONE superpower?",options:[
+{t:"Super intelligence",c:0},
+{t:"Mind control",c:1},
+{t:"Control technology",c:2},
+{t:"Create anything",c:3}]},
+
+{q:"Which character are you?",options:[
+{t:"Sherlock Holmes",c:0},
+{t:"Tony Stark",c:1},
+{t:"Engineer hero",c:2},
+{t:"Creative pirate",c:3}]},
+
+{q:"Dream weekend?",options:[
+{t:"Reading ideas",c:0},
+{t:"Adventure",c:1},
+{t:"Building something",c:2},
+{t:"Making art",c:3}]},
+
+{q:"Friends need help?",options:[
+{t:"Analyze",c:0},
+{t:"Lead",c:1},
+{t:"Fix",c:2},
+{t:"Creative idea",c:3}]},
+
+{q:"Your YouTube feed?",options:[
+{t:"Documentaries",c:0},
+{t:"Motivation",c:1},
+{t:"Tech",c:2},
+{t:"Art",c:3}]},
+
+{q:"Video game role?",options:[
+{t:"Strategist",c:0},
+{t:"Commander",c:1},
+{t:"Engineer",c:2},
+{t:"Artist",c:3}]},
+
+{q:"Biggest strength?",options:[
+{t:"Thinking",c:0},
+{t:"Leading",c:1},
+{t:"Building",c:2},
+{t:"Creativity",c:3}]},
+
+{q:"What annoys you?",options:[
+{t:"Bad logic",c:0},
+{t:"Low ambition",c:1},
+{t:"Broken systems",c:2},
+{t:"Boring routine",c:3}]},
+
+{q:"If aliens land?",options:[
+{t:"Study them",c:0},
+{t:"Lead humans",c:1},
+{t:"Analyze tech",c:2},
+{t:"Film it",c:3}]},
+
+{q:"₹10 lakh suddenly?",options:[
+{t:"Invest",c:0},
+{t:"Launch venture",c:1},
+{t:"Build product",c:2},
+{t:"Creative brand",c:3}]},
+
+{q:"Best compliment?",options:[
+{t:"Smart",c:0},
+{t:"Leader",c:1},
+{t:"Builder",c:2},
+{t:"Creative",c:3}]},
+
+{q:"You become famous for?",options:[
+{t:"Ideas",c:0},
+{t:"Leadership",c:1},
+{t:"Inventions",c:2},
+{t:"Art",c:3}]}
+
+];
+
+questions.sort(()=>Math.random()-0.5);
+
+const profiles=[
+{name:"Strategist",desc:"Deep thinker who sees patterns others miss."},
+{name:"Commander",desc:"Natural leader who takes action."},
+{name:"Builder",desc:"Problem solver who creates systems."},
+{name:"Creator",desc:"Imaginative mind full of ideas."}
+];
+
+let scores=[0,0,0,0];
+let current=-1;
+let name="";
+
+function start(){
+document.getElementById("app").innerHTML=
+`<input id="username" placeholder="Enter your name">
+<button onclick="begin()">Start Quiz</button>`;
+}
+
+function begin(){
+name=document.getElementById("username").value;
+if(!name){alert("Enter name");return;}
+current=0;
+load();
+}
+
+function load(){
+
+updateProgress();
+
+if(current>=questions.length){finish();return;}
+
+let q=questions[current];
+
+let html=`<h3>${q.q}</h3>`;
+
+q.options.forEach(o=>{
+html+=`<button onclick="select(${o.c})">${o.t}</button>`;
+});
+
+document.getElementById("app").innerHTML=html;
+
+}
+
+function select(cat){
+clickSound.play();
+scores[cat]+=1;
+current++;
+load();
+}
+
+function updateProgress(){
+
+let percent=Math.floor((current/questions.length)*100);
+
+document.getElementById("progress").style.width=percent+"%";
+document.getElementById("progressText").innerText=percent+"% completed";
+
+}
+
+function finish(){
+
+finishSound.play();
+
+let max=scores.indexOf(Math.max(...scores));
+let result=profiles[max];
+
+playSong(result.name);
+
+updateStats(result.name);
+
+document.getElementById("app").innerHTML=
+
+`<div class="result-card" id="resultCard">
+
+<h2>${name}, you are</h2>
+
+<div class="result-title">${result.name}</div>
+
+<p>${result.desc}</p>
+
+<div class="result-image">
+🏆 ${name} is a ${result.name}
+</div>
+
+<canvas id="chart"></canvas>
+
+<h3>Community Results</h3>
+<canvas id="statsChart"></canvas>
+
+<button onclick="shareResult('${result.name}')">Share Result</button>
+<button onclick="downloadPDF('${result.name}')">Download PDF</button>
+<button onclick="downloadImage()">Download Result Image</button>
+<button onclick="location.reload()">Take Quiz Again</button>
+
+</div>`;
+
+createChart();
+showStats();
+
+confetti({particleCount:120,spread:70,origin:{y:0.6}});
+
+}
+
+function createChart(){
+
+new Chart(document.getElementById("chart"),{
+
+type:'radar',
+
+data:{
+labels:["Strategist","Commander","Builder","Creator"],
+datasets:[{data:scores}]
+},
+
+options:{plugins:{legend:{display:false}}}
+
+});
+
+}
+
+function updateStats(type){
+
+let stats=JSON.parse(localStorage.getItem("quizStats"))||{
+Strategist:0,Commander:0,Builder:0,Creator:0
+};
+
+stats[type]++;
+localStorage.setItem("quizStats",JSON.stringify(stats));
+
+}
+
+function showStats(){
+
+let stats=JSON.parse(localStorage.getItem("quizStats"));
+
+new Chart(document.getElementById("statsChart"),{
+
+type:'bar',
+
+data:{
+labels:Object.keys(stats),
+datasets:[{data:Object.values(stats)}]
+},
+
+options:{plugins:{legend:{display:false}}}
+
+});
+
+}
+
+function shareResult(result){
+
+const text=`I got "${result}" on MindMirror quiz!`;
+
+navigator.clipboard.writeText(text);
+
+alert("Copied! Share it.");
+
+}
+
+function downloadPDF(result){
+
+const {jsPDF}=window.jspdf;
+const doc=new jsPDF();
+
+doc.text("MindMirror Result",20,20);
+doc.text(`Name: ${name}`,20,40);
+doc.text(`Result: ${result}`,20,60);
+
+doc.save("MindMirror_Result.pdf");
+
+}
+
+function downloadImage(){
+
+html2canvas(document.getElementById("resultCard")).then(canvas=>{
+const link=document.createElement("a");
+link.download="MindMirror_Result.png";
+link.href=canvas.toDataURL();
+link.click();
+});
+
+}
+
+start();
+
+</script>
+
+</body>
+</html>
